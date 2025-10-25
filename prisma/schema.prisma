@@ -14,8 +14,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model Document {
   id String @id @default(cuid())
+  userId String 
   title  String 
   fileUrl String
   createdAt DateTime @default(now())
@@ -30,4 +32,213 @@ model Chunk {
   embedding Json
   Document   Document @relation(fields: [documentId], references: [id])
 
+}
+
+
+
+enum UserRole {
+  CANDIDATE
+  COMPANY_ADMIN
+  ADMIN
+}
+
+enum InterviewStatus {
+  NOT_STARTED
+  PENDING
+  IN_PROGRESS
+  ENDED
+  FAILED
+}
+
+enum CreditTransactionType {
+  UPLOAD_RESUME
+  START_INTERVIEW
+  DEDUCT_QUESTION
+  REFUND
+  PURCHASE
+}
+
+enum ResumeStatus {
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum PaymentProvider {
+  STRIPE
+  RAZORPAY
+  PAYPAL
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id               String    @id @default(uuid())
+  clerkId          String    @unique
+  email            String    @unique
+  name             String?
+  profileImage     String?
+  emailVerified    Boolean   @default(false)
+  role             UserRole  @default(CANDIDATE)
+  companyId        String?
+  credits          Int       @default(10)
+  isActive         Boolean   @default(true)
+  lastLogin        DateTime?
+  planTier         PlanTier  @default(FREE)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  resumes          Resume[]
+  interviews       InterviewSession[]
+  company          Company?   @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  transactions     CreditTransaction[]
+  payments         Payment[]
+
+  @@index([email])
+  @@index([role])
+  @@index([planTier])
+}
+
+model Company {
+  id                String   @id @default(uuid())
+  name              String
+  industry          String?
+  location          String?
+  planTier          PlanTier @default(FREE)
+  maxSeats          Int      @default(5)
+  stripeCustomerId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  users             User[]
+  interviews        InterviewSession[]
+
+  @@index([name])
+  @@index([planTier])
+}
+
+model Resume {
+  id                String       @id @default(uuid())
+  userId            String
+  filePath          String
+  filename          String?
+  mimeType          String?      // application/pdf
+  sizeBytes         Int?         // file size
+  status            ResumeStatus @default(PROCESSED)
+  language          String?      // detected language (e.g., "en")
+  fullResumeText    String
+  resumeChunks      Json?        // [{section: "Skills", text: "..."}]
+  embeddingIndex    String?      // Pinecone namespace/id
+  processedAt       DateTime?    // time embeddings were created
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relations
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviews        InterviewSession[]
+
+  @@index([userId])
+  @@index([status])
+}
+model  InterviewSession {
+  id                String          @id @default(uuid())
+  userId            String?
+  companyId         String?
+  resumeId          String
+
+  aiInterviewerId   String?
+  jobRole           String
+  modelVersion      String?          // Still keep this if you want per-session overrides
+  status            InterviewStatus  @default(PENDING)
+
+  // AI Context & Flow
+  resumeContext     String?
+  questionQueue     Json[]
+  transcript        Json[]
+  scores            Json[]
+  report            Json?
+  finalScore        Float?
+
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  // Relations
+  user              User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company           Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  resume            Resume          @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  aiInterviewer     AIInterviewer?  @relation(fields: [aiInterviewerId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([status])
+  @@index([jobRole])
+  @@index([aiInterviewerId])
+}
+
+model CreditTransaction {
+  id                String                @id @default(uuid())
+  userId            String
+  type              CreditTransactionType
+  amount            Int
+  description       String
+  referenceId       String?               // e.g., resumeId or interviewId
+  paymentId         String?               // Link to payment
+  createdAt         DateTime              @default(now())
+
+  // Relations
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([referenceId])
+}
+
+model Payment {
+  id                String          @id @default(uuid())
+  userId            String
+  provider          PaymentProvider @default(STRIPE)
+  stripePaymentId   String?
+  amount            Int
+  currency          String          @default("usd")
+  status            String
+  receiptUrl        String?
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+
+  // Relations
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripePaymentId])
+  @@index([provider])
+}
+
+
+
+model AIInterviewer {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  avatarUrl       String?
+  modelVersion    String    // e.g., "gpt-4-turbo"
+  specialization  String?   // e.g., "Full Stack", "Data Science"
+  temperature     Float?    // Optional - controls creativity
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  interviews      InterviewSession[]
+
+  @@index([modelVersion])
+  @@index([specialization])
 }
