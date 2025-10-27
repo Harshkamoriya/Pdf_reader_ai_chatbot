@@ -1,10 +1,10 @@
 
 "use client"
 
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 
