@@ -165,6 +165,7 @@ model  InterviewSession {
   scores            Json[]
   report            Json?
   finalScore        Float?
+  finalReport       Json?
 
   startedAt         DateTime?
   endedAt           DateTime?
