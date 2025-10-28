@@ -6,12 +6,11 @@ import { ReactQueryProvider } from './components/ReactQueryProvider'
 import Herosection from './components/HeroSection'
 import { useUser } from '@clerk/nextjs'
 import axios from 'axios'
-import middleware from '@/middleware'
 
 
 const page = () => {
 
-  const {user , isSignedIn} = useUser();
+  const { isSignedIn} = useUser();
 
   const handlepost = async () =>{
     const res = await axios.post(`/api/aiCoach`);
