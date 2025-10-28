@@ -5,7 +5,6 @@ import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 
 import { ReactQueryProvider } from "./components/ReactQueryProvider";
-import UploadForm from "./components/UploadForm";
 import Herosection from "./components/HeroSection";
 
 const Page = () => {

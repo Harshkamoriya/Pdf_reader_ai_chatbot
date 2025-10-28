@@ -9,9 +9,13 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [
+export default [
+  // --- Next.js base configs ---
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // --- Your general project rules ---
   {
+    files: ["**/*.{js,jsx,ts,tsx}"],
     ignores: [
       "node_modules/**",
       ".next/**",
@@ -19,22 +23,18 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "prisma/**",
+      "app/generated/**",
+      "**/*.d.ts",
     ],
     rules: {
-      // ✅ Common relief rules
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-require-imports": "off",
-        "@typescript-eslint/no-this-alias": "off",
-
-
-      // Warn instead of error for minor issues
+      "@typescript-eslint/no-this-alias": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-
-      // Optional: keep your imports tidy
       "import/order": [
         "warn",
         {
@@ -44,6 +44,21 @@ const eslintConfig = [
       ],
     },
   },
-];
 
-export default eslintConfig;
+  // --- Specific config for generated / vendor code ---
+  {
+    files: [
+      "app/generated/**",
+      "prisma/**",
+      "node_modules/**",
+      "**/*.d.ts",
+    ],
+    rules: {
+      "@typescript-eslint/no-unused-expressions": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unnecessary-type-constraint": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
+      "@typescript-eslint/no-wrapper-object-types": "off",
+    },
+  },
+];
