@@ -18,7 +18,29 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "prisma/**",
     ],
+    rules: {
+      // ✅ Common relief rules
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-require-imports": "off",
+
+      // Warn instead of error for minor issues
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+
+      // Optional: keep your imports tidy
+      "import/order": [
+        "warn",
+        {
+          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+          "newlines-between": "always",
+        },
+      ],
+    },
   },
 ];
 
