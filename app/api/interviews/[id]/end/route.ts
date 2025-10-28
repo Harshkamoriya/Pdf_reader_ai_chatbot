@@ -17,53 +17,49 @@ export async function POST(
     );
   }
 }
-
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+req: NextRequest,
+context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    // Validate sessionId
-    if (!params.id || typeof params.id !== "string") {
-      return NextResponse.json(
-        { error: "Invalid session ID" },
-        { status: 400 }
-      );
-    }
+try {
+const { id } = await context.params;
 
-    // Fetch the session
-    const session = await prisma.interviewSession.findUnique({
-      where: { id: params.id },
-    });
+if (!id || typeof id !== "string") {
+  return NextResponse.json({ error: "Invalid session ID" }, { status: 400 });
+}
 
-    // Check if session exists
-    if (!session) {
-      return NextResponse.json(
-        { error: "Interview session not found" },
-        { status: 404 }
-      );
-    }
+const session = await prisma.interviewSession.findUnique({
+  where: { id },
+});
 
-    // Check if finalReport exists
-    if (!session.finalReport) {
-      return NextResponse.json(
-        { error: "Final report not yet generated" },
-        { status: 404 }
-      );
-    }
+if (!session) {
+  return NextResponse.json(
+    { error: "Interview session not found" },
+    { status: 404 }
+  );
+}
 
-    return NextResponse.json(
-      { success: true, finalReport: session.finalReport },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("❌ Error fetching final report:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to fetch final report",
-        details: error.message || "Unknown error",
-      },
-      { status: 500 }
-    );
-  }
+if (!session.finalReport) {
+  return NextResponse.json(
+    { error: "Final report not yet generated" },
+    { status: 404 }
+  );
+}
+
+return NextResponse.json(
+  { success: true, finalReport: session.finalReport },
+  { status: 200 }
+);
+
+
+} catch (error: any) {
+console.error("❌ Error fetching final report:", error);
+return NextResponse.json(
+{
+error: "Failed to fetch final report",
+details: error.message || "Unknown error",
+},
+{ status: 500 }
+);
+}
 }
