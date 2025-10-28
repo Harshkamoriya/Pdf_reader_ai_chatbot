@@ -268,7 +268,7 @@ const InterviewPage = () => {
     const fetchFinalReport = async () => {
       if (sessionData?.status === "ENDED" && !finalReport) {
         try {
-          const res = await fetch(`/api/interviews/${sessionId}/report`);
+          const res = await fetch(`/api/interviews/${sessionId}/end`);
           const data = await res.json();
           if (data.finalReport) {
             setFinalReport(data.finalReport);

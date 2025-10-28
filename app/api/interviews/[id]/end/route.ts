@@ -2,23 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateFinalInterviewReport } from "@/app/lib/interviewUtils";
 import prisma from "@/app/lib/db";
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await context.params; // ✅ await the Promise
 
-    const result = await generateFinalInterviewReport(id);
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("❌ Error ending interview:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to end interview" },
-      { status: 500 }
-    );
-  }
-}
 
 export async function GET(
   req: NextRequest,
@@ -60,6 +44,25 @@ export async function GET(
         error: "Failed to fetch final report",
         details: error.message || "Unknown error",
       },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params; // ✅ await the Promise
+
+    const result = await generateFinalInterviewReport(id);
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error("❌ Error ending interview:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to end interview" },
       { status: 500 }
     );
   }
