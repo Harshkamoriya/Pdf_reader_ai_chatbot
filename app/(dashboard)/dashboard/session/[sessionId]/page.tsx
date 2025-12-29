@@ -1,12 +1,13 @@
 // /app/(wherever)/page.tsx (client component)
 "use client";
 
-import { Button } from "@/app/components/ui/button";
 import { useParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
+
+import { Button } from "@/app/components/ui/button";
 
 interface TranscriptEntry {
   type: string;

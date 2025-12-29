@@ -1,12 +1,15 @@
+import fs from "fs/promises";
+import path from "path";
+
 import { NextResponse, NextRequest } from "next/server";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { embedTextWithGemini } from "@/app/lib/gemini";
-import prisma from "@/app/lib/db";
-import { pdf } from "pdf-parse"; // ✅ correct import syntax
 import { getAuth } from "@clerk/nextjs/server";
-import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
-import path from "path";
+import {pdf} from "pdf-parse";  // ✅ Fixed import
+
+
+import prisma from "@/app/lib/db";
+import { embedTextWithGemini } from "@/app/lib/gemini";
 import { createInterviewSession } from "@/app/lib/interviewSession";
 
 export async function POST(req: NextRequest) {

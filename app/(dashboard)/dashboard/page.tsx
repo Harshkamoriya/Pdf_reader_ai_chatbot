@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-
-import AppHeader from "../_components/AppHeader";
-import { Button } from "@/app/components/ui/button";
 import { useUser } from "@clerk/nextjs";
+import { div } from "framer-motion/client";
+import { Upload } from "lucide-react";
+import toast from "react-hot-toast";
+import axios from "axios";
 
+import { useUploadResume } from "@/hooks/useUploadResume";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +18,9 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { div } from "framer-motion/client";
-import { Upload } from "lucide-react";
-import toast from "react-hot-toast";
-import { useUploadResume } from "@/hooks/useUploadResume";
-import axios from "axios";
+import { Button } from "@/app/components/ui/button";
+
+import AppHeader from "../_components/AppHeader";
 
 interface Coach {
   id: number;

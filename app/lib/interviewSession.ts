@@ -105,7 +105,7 @@ ${fullResumeText}
         console.log("✅ Successfully extracted resume sections:", Object.values(sectionResults));
 
   } catch (err) {
-    console.error("❌ Failed to parse Gemini JSON for section extraction:", sectionJson);
+    console.error("❌ Failed to parse Gemini JSON for section extraction:", err);
     throw new Error("Gemini returned invalid section JSON.");
   }
 
@@ -156,9 +156,9 @@ Respond ONLY with a raw JSON array of objects, no extra text or markdown:
   try {
     questions = JSON.parse(questionsJson);
     console.log("✅ Parsed Gemini questions successfully:", questions);
-  } catch (err) {
-    console.error("❌ Failed to parse Gemini JSON for questions:", questionsJson);
-    throw new Error("Gemini returned invalid question JSON format.");
+  } catch {
+    console.error("❌ Failed to parse Gemini JSON for questions:", Error);
+    throw new Error("Gemini returned invalid question JSON format.",);
   }
 
   // 💾 Update session with generated questions

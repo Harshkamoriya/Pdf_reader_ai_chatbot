@@ -1,6 +1,7 @@
-import { embedTextWithGemini, queryGemini } from "@/app/lib/gemini";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { NextRequest, NextResponse } from "next/server";
+
+import { embedTextWithGemini, queryGemini } from "@/app/lib/gemini";
 
 export async function POST(req: NextRequest) {
   try {

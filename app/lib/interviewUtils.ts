@@ -1,5 +1,5 @@
 // /app/lib/interviewUtils.ts
-import { Prisma } from "@prisma/client";
+
 import prisma from "./db";
 import { generateWithGemini } from "./llm";
 

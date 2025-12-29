@@ -1,7 +1,8 @@
+import { NextRequest, NextResponse } from "next/server";
+
 import prisma from "@/app/lib/db";
 import { generateWithGemini } from "@/app/lib/llm";
 import { queryResumeChunks } from "@/app/lib/pinecone";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function createInterviewSession({
   userId,

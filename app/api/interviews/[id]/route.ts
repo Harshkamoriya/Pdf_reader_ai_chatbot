@@ -1,12 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
+import type { JsonValue } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
+
 import prisma from "@/app/lib/db";
 import { generateWithGemini } from "@/app/lib/llm";
 import { queryResumeChunks } from "@/app/lib/pinecone";
 import { updateSession, endInterview } from "@/app/lib/interviewUtils";
 import { INTERVIEW_SYSTEM_PROMPT } from "@/app/lib/prompt";
-import type { JsonValue } from "@prisma/client/runtime/library";
-import { Prisma } from "@prisma/client";
-
 import { generateFinalInterviewReport } from "@/app/lib/interviewUtils";
 
 // ----------------------

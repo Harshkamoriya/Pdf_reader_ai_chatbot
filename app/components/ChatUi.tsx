@@ -2,9 +2,10 @@
 
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { useState } from "react"
+
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react"
 
 export default function ChatUi (){
 
