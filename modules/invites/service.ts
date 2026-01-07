@@ -34,13 +34,18 @@ export async function validateInviteToken(token : string){
 }
 export async function consumeInvite(
   token: string,
-  userId: string
+  userId?: string
 ) {
+  console.log("inside the consumeInvite service function")
+  
+
   return prisma.$transaction(async tx => {
     const invite = await tx.invite.findUnique({
       where: { token },
+      include: { job: true },
     });
 
+    console.log("invite",invite)  
     if (!invite || invite.status !== "PENDING") {
       throw new Error("Invite invalid");
     }
@@ -53,19 +58,38 @@ export async function consumeInvite(
       },
     });
 
+    console.log("invite updated",invite)
+
+
+    // If userId is not provided, try to find the user by email from the invite
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const user = await tx.user.findUnique({
+        where: { email: invite.email },
+      });
+      targetUserId = user?.id;
+    }
+
     // Create interview session
     const session = await tx.interviewSession.create({
       data: {
-        userId,
+        userId: targetUserId,
         jobId: invite.jobId,
+        companyId: invite.job.companyId,
+        jobRole: invite.job.title,
         status: "PENDING",
+        questionQueue: [],
+        transcript: [],
+        scores: [],
         createdAt: new Date(),
       },
     });
+    console.log("session created",session)
 
     return session;
   });
 }
+
 
 export async function listUserInvitesService(email: string) {
   return prisma.invite.findMany({

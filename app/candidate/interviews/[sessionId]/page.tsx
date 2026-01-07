@@ -1,35 +1,33 @@
+import { getInterviewStateService } from "@/modules/interview/service";
 import { redirect } from "next/navigation";
 
 export default async function InterviewController({
   params,
 }: {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }) {
-  const res = await fetch(
-    `/api/interviews/${params.sessionId}/state`,
-    { cache: "no-store" }
-  );
+  const { sessionId } = await params;
+  
+  const state = await getInterviewStateService(sessionId);
 
-  const state = await res.json();
-
-  if (state.sessionStatus === "ENDED") {
-    redirect(`/candidate/interviews/${params.sessionId}/completed`);
+  if (state.status === "ENDED" || state.isCompleted) {
+    redirect(`/candidate/interviews/${sessionId}/completed`);
   }
 
   const round = state.currentRound;
 
   if (!round) {
-    redirect(`/candidate/interviews/${params.sessionId}/completed`);
+    redirect(`/candidate/interviews/${sessionId}/completed`);
   }
 
   switch (round.roundType) {
     case "OA":
-      redirect(`/candidate/interviews/${params.sessionId}/oa`);
+      redirect(`/candidate/interviews/${sessionId}/oa`);
     case "TECHNICAL":
-      redirect(`/candidate/interviews/${params.sessionId}/technical`);
+      redirect(`/candidate/interviews/${sessionId}/technical`);
     case "HR":
-      redirect(`/candidate/interviews/${params.sessionId}/hr`);
+      redirect(`/candidate/interviews/${sessionId}/hr`);
     default:
-      redirect(`/candidate/interviews/${params.sessionId}/completed`);
+      redirect(`/candidate/interviews/${sessionId}/completed`);
   }
 }

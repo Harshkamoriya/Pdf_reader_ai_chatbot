@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import prisma from "@/app/lib/db";
 import { generateWithGemini } from "@/app/lib/llm";
 import { queryResumeChunks } from "@/app/lib/pinecone";
@@ -136,9 +135,9 @@ export async function GET(req: NextRequest) {
     const users = await prisma.user.findMany();
     console.log(`✅ Retrieved ${users.length} users`);
 
-    return NextResponse.json({status :200 , message:"users fetched successfully"})
+    return NextResponse.json({ status: 200, message: "users fetched successfully", data: users });
+  } catch (error) {
+    console.error("❌ Error fetching users:", error);
+    return NextResponse.json({ error: error || "Internal Server Error" }, { status: 500 });
   }
-  catch(error){
- console.error("❌ Error fetching users:", error);
-    return NextResponse.json({ error: error || "Internal Server Error" }, { status: 500 });  }
 }
