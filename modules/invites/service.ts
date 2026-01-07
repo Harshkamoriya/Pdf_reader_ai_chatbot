@@ -53,7 +53,7 @@ export async function consumeInvite(
       },
     });
 
-    // Create  interview session
+    // Create interview session
     const session = await tx.interviewSession.create({
       data: {
         userId,
@@ -64,5 +64,14 @@ export async function consumeInvite(
     });
 
     return session;
+  });
+}
+
+export async function listUserInvitesService(email: string) {
+  return prisma.invite.findMany({
+    where: { email },
+    include: {
+      job: true
+    }
   });
 }

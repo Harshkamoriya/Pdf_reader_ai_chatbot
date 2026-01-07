@@ -2,9 +2,9 @@ import { getJobPipeline } from "@/modules/jobs/pipeline.service";
 
 
 export async function GET(
-    _:Request,{params}:{params:{jobId:string}}
+    _:Request,{params}:{params: Promise<{jobId:string}>}
 ){
-    const pipeline = await getJobPipeline(params.jobId);
+    const { jobId } = await params;
+    const pipeline = await getJobPipeline(jobId);
     return Response.json({success:true , pipeline});
 }
-

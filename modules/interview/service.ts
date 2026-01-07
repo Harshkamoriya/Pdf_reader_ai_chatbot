@@ -4,7 +4,7 @@ import prisma from "@/app/lib/db";
 export async function createInterviewRounds(
     jobId:string,
     rounds:{
-        roundType:"OA" | "TECHNICAL" | "DSA" | "HR";
+        roundType: string;
         order : number ;
         weight: number;
         config: any;

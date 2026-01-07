@@ -224,7 +224,7 @@ enum InviteStatus {
 model InterviewRound {
   id        String         @id @default(uuid())
   jobId     String
-  roundType RoundType
+  roundType String
   order     Int
   config    Json
   weight    Float
@@ -233,13 +233,6 @@ model InterviewRound {
   sessions  RoundSession[]
 
   @@index([jobId])
-}
-
-enum RoundType {
-  OA
-  TECHNICAL
-  DSA
-  HR
 }
 
 model RoundSession {

@@ -1,14 +1,11 @@
-// Queue setup
-// import { Queue } from 'bullmq';
-// export const myQueue = new Queue('my-queue');
-
 import {Queue} from "bullmq";
-import {redis} from "./redis";
+import {getSafeRedisConnection} from "./redis";
 
+const connection = getSafeRedisConnection();
 
 export const scoringQueue = new Queue("scoring-queue"  ,{
-    connection:redis.options
+    connection
 });
 export const reportQueue =new Queue("report-queue",{
-    connection:redis.options
+    connection
 })

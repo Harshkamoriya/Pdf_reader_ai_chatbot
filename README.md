@@ -1,5 +1,14 @@
 # AI Recruiter Platform 🚀
 
+> [!NOTE]
+> **Recent Updates (Jan 3-4, 2026)**
+> - **AI Proctoring System:** Added real-time monitoring for tab switches, fullscreen exits, and face detection using MediaPipe.
+> - **Background Infrastructure:** Integrated **BullMQ** and **Redis** for scalable background job processing (scoring, reporting).
+> - **Modular Architecture:** Refactored core logic into dedicated modules (`assessment`, `interview`, `invites`, `jobs`, etc.).
+> - **Online Assessment (OA):** Implemented the initial flow for candidate assessments with media permission handling.
+> - **Recruiter Dashboard:** Scaffolded the initial recruiter-facing interface.
+
+
 ## Overview
 
 **AI Recruiter** is a cutting-edge recruitment automation platform designed to streamline the hiring process. It solves the critical "real-life" problem of time-consuming manual screening by leveraging Generative AI to parse resumes, conduct interactive voice-based interviews, and generate comprehensive candidate reports.
