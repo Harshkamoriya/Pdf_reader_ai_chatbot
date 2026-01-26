@@ -1,112 +1,98 @@
-# AI Recruiter Platform 🚀
+# AI-Driven Recruitment Platform (AI Recruiter)
 
-> [!NOTE]
-> **Recent Updates (Jan 3-4, 2026)**
-> - **AI Proctoring System:** Added real-time monitoring for tab switches, fullscreen exits, and face detection using MediaPipe.
-> - **Background Infrastructure:** Integrated **BullMQ** and **Redis** for scalable background job processing (scoring, reporting).
-> - **Modular Architecture:** Refactored core logic into dedicated modules (`assessment`, `interview`, `invites`, `jobs`, etc.).
-> - **Online Assessment (OA):** Implemented the initial flow for candidate assessments with media permission handling.
-> - **Recruiter Dashboard:** Scaffolded the initial recruiter-facing interface.
+This project is a comprehensive AI-powered recruitment platform designed to automate and enhance the hiring process. It manages everything from job creation and candidate invitation to automated AI interviews with real-time proctoring and detailed analytics.
 
+## 🚀 Tech Stack
 
-## Overview
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescript.org/)
+- **Database & ORM**: [PostgreSQL](https://www.postgresql.org/) with [Prisma](https://www.prisma.io/)
+- **Authentication**: [Clerk](https://clerk.com/)
+- **AI Integration**: OpenAI / Custom AI modules for interview generation and scoring
+- **Styling**: Tailwind CSS
+- **Infrastructure**: Modular architecture with separate logic layers (`modules`), infra services, and background workers.
 
-**AI Recruiter** is a cutting-edge recruitment automation platform designed to streamline the hiring process. It solves the critical "real-life" problem of time-consuming manual screening by leveraging Generative AI to parse resumes, conduct interactive voice-based interviews, and generate comprehensive candidate reports.
+---
 
-This application acts as a virtual interviewer, allowing companies to scale their screening process while providing candidates with immediate, unbiased interactions.
+## 🏗️ Project Structure
 
-## 🌟 Key Features
+The project follows a clean, modular architecture:
 
-- **Smart Resume Parsing**: Extracts skills, experience, and candidate details from PDF resumes using advanced parsing and vector embedding (`pdf-parse`, `Pinecone`).
-- **AI-Powered Interviews**: Conducts real-time, context-aware interviews tailored to the candidate's resume and job role using **Google Gemini**.
-- **Voice Interaction**: Features seamless Speech-to-Text (AssemblyAI) and Text-to-Speech (AWS Polly) for a natural conversational experience.
-- **Automated Grading & Reporting**: Generates detailed feedback reports and scores candidates immediately after the interview.
-- **Role-Based Access**: Specialized dashboards for **Candidates** (to manage profiles/interviews) and **Company Admins** (to manage jobs/credits).
-- **Credit System**: Integrated credit/token usage for managing interview quotas.
+- `app/`: Next.js App Router containing all pages and API routes.
+  - `(dashboard)/`: Recruiter/Admin dashboard interface.
+  - `candidate/`: Candidate-facing interface for interviews.
+  - `api/`: Backend API endpoints.
+- `modules/`: Core business logic separated into domain-specific services (Jobs, Interviews, Assessment, etc.).
+- `prisma/`: Database schema definitions using Prisma.
+- `infra/`: Infrastructure-level services (Storage, AI clients, etc.).
+- `workers/`: Background processes for handling intensive tasks like AI processing.
 
-## 🛠️ Tech Stack
+---
 
-### Core Framework
-- **Frontend/Backend:** [Next.js 15](https://nextjs.org/) (App Router)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
-- **State/Animations:** Framer Motion, React Query
+## 🔄 System Flow & Connectivity
 
-### Data & Storage
-- **Database:** PostgreSQL (via [Prisma ORM](https://www.prisma.io/))
-- **Vector Database:** [Pinecone](https://www.pinecone.io/) (for RAG context)
-- **Authentication:** [Clerk](https://clerk.com/)
+### 1. Recruiter Flow (The "Source")
+1.  **Job Creation**: Recruiter creates a `Job` posting with specific skills and requirements.
+2.  **Round Configuration**: Recruiter defines `InterviewRound` sequence (e.g., Online Assessment -> Technical -> HR).
+3.  **Candidate Invitation**: Recruiter sends invites to candidates via email. A unique token is generated for each `Invite`.
+4.  **Analytics**: Recruiter monitors the `pipeline` and views detailed `report` and `scoring` for each candidate.
 
-### Artificial Intelligence
-- **LLM Engine:** Google Generative AI (Gemini)
-- **Speech-to-Text:** AssemblyAI
-- **Text-to-Speech:** AWS SDK (Polly)
+### 2. Candidate Flow (The "Experience")
+1.  **Invite Consumption**: Candidate clicks the invite link, validating the token via `/api/invites/validate/[token]`.
+2.  **Session Initiation**: Upon validation, an `InterviewSession` is created (`/api/invites/consume`).
+3.  **Interview Progression**:
+    -   Candidate is routed to the current round (`OA`, `TECHNICAL`, or `HR`) via `app/candidate/interviews/[sessionId]/page.tsx`.
+    -   The frontend calls `/api/candidate/interviews/[session_id]/state` to determine the current progress.
+4.  **Proctoring**: During the interview, real-time proctoring (TAB_SWITCH, FACE_DETECT, etc.) events are sent to `/api/proctoring/events`.
+5.  **Completion**: Once all rounds are finished, the session status is updated to `ENDED`.
 
-## 📡 API Endpoints
+---
 
-The application exposes several key API endpoints for integration and frontend usage:
+## 📡 API Endpoints (The "Engine")
 
-### Interviews
-- \`GET /api/interviews\`: Retrieve a list of user interviews.
-- \`POST /api/interviews\`: Create/Initialize a new interview session.
-- \`GET /api/interviews/[id]\`: Get the status and details of a specific interview.
-- \`POST /api/interviews/[id]/end\`: Finalize an interview session.
-- \`GET /api/interviews/[id]/report\`: Fetch the generated feedback report.
+The project exposes a rich set of APIs to facilitate the flow:
 
-### Uploads & Resources
-- \`POST /api/upload\`: Handle PDF resume uploads and parsing.
-- \`GET /api/getToken\`: Generate ephemeral tokens for real-time services.
-- \`POST /api/query\`: Contextual query against uploaded documents (RAG).
+### 💼 Jobs & Recruitment
+- `POST /api/jobs`: Create a new job.
+- `GET /api/jobs/[jobId]/pipeline`: Fetch all candidates and their statuses for a specific job.
+- `GET /api/jobs/[jobId]/analytics`: Get performance metrics for a job.
 
-### User Management
-- \`GET /api/user\`: Manage user profiles and credit transactions.
-- \`GET /api/aiCoach\`: Access AI coaching features.
+### 📧 Invitations
+- `POST /api/invites`: Send interview invitations.
+- `GET /api/invites/validate/[token]`: Check if an invite token is valid.
+- `POST /api/invites/consume`: Process the invite and start a candidate session.
 
-## 🚀 Getting Started
+### 🎙️ Interview Operations
+- `GET /api/interviews/[id]/state`: Get current session progress and metadata.
+- `POST /api/interviews/[id]/end`: Forcefully end an interview session.
+- `GET /api/interviews/[id]/report`: Generate/Fetch the final interview report.
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL Database
-- Clerk Account
-- API Keys (Gemini, AssemblyAI, AWS, Pinecone)
+### 🤖 AI & Content
+- `POST /api/ai/generate-questions`: Use AI to generate relevant questions based on job description.
+- `GET /api/rounds/[roundSessionId]/questions`: Fetch active questions for a specific round.
+- `POST /api/rounds/[roundSessionId]/submit`: Submit candidate answers for AI evaluation.
 
-### Installation
+### 🛡️ Security & Monitoring
+- `POST /api/proctoring/events`: Log proctoring violations during an interview.
+- `GET /api/getToken`: Generate temporary security tokens for AI/Media interactions.
 
-1. **Clone the repository:**
-   \`\`\`bash
-   git clone https://github.com/your-username/ai-recruiter.git
-   cd ai-recruiter
-   \`\`\`
+---
 
-2. **Install dependencies:**
-   \`\`\`bash
-   npm install
-   \`\`\`
+## 💾 Database Overview (Prisma Concepts)
 
-3. **Set up environment variables:**
-   Create a \`.env\` file in the root directory and add:
-   \`\`\`env
-   DATABASE_URL="postgresql://..."
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="..."
-   CLERK_SECRET_KEY="..."
-   GEMINI_API_KEY="..."
-   PINECONE_API_KEY="..."
-   ASSEMBLYAI_API_KEY="..."
-   AWS_ACCESS_KEY_ID="..."
-   AWS_SECRET_ACCESS_KEY="..."
-   \`\`\`
+Key models that drive the system:
+- **`User` / `Company`**: The core entities for multi-tenant access.
+- **`Job` / `InterviewRound`**: Defines the recruitment requirements.
+- **`InterviewSession`**: Linkage between a `Candidate`, a `Job`, and their `Resume`.
+- **`RoundSession`**: Tracks specific performance within a single round.
+- **`ProctoringEvent`**: Records any suspicious activity during interviews.
 
-4. **Run Database Migrations:**
-   \`\`\`bash
-   npx prisma migrate dev
-   \`\`\`
+---
 
-5. **Start the development server:**
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+## 🛠️ Connectivity: Frontend to Backend
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The frontend connects to the backend using a combination of **Server Actions** (for direct server-side mutations) and the **Service Layer** pattern:
 
-## 📄 License
-[MIT](LICENSE)
+1.  **Service Layer (`modules/`)**: Shared logic used by both API routes and Server Components.
+2.  **State Management**: Real-time status updates are handled by polling or state API calls (`/state`) to ensure the UI reflects the current interview phase.
+3.  **Context-Driven Routing**: The `InterviewController` manages candidate redirection based on the dynamic state of their `InterviewSession`.

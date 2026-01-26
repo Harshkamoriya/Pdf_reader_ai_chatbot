@@ -27,6 +27,7 @@ interface Coach {
   name: string;
   img: string;
 }
+
 const Page = () => {
   const { isSignedIn, user } = useUser();
 
@@ -74,12 +75,25 @@ const Page = () => {
   ];
 
   const services = [
-    { title: "Topic-based Lecture", image: "./lecture.jpg" },
-    { title: "Mock Interview", image: "./interview.jpg" },
-    { title: "Ques & ans", image: "./qa.jpg" },
-    { title: "Learn Language", image: "./language.jpg" },
-    { title: "Meditation", image: "./meditation.jpg" },
-  ];
+  {
+    title: "Coding Assessments",
+    image: "./coding.jpg",
+    type: "coding",
+  },
+  {
+    title: "Practice MCQs",
+    image: "./mcq.jpg",
+    type: "mcq",
+  },
+  {
+    title: "Mock Interview",
+    image: "./interview.jpg",
+    type: "interview",
+  },
+];
+
+
+
 
   // const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
   //   console.log("inside handle change event");
@@ -92,13 +106,27 @@ const Page = () => {
       <AppHeader />
 
       {/* Services Grid */}
-      <div className="mt-10 grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+<div className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, idx) => (
           <div
             key={idx}
             className="flex cursor-pointer flex-col items-center rounded-xl bg-white p-4 text-center shadow-md transition-shadow hover:shadow-xl dark:bg-gray-800"
-            onClick={() => setSelectedService(service)}
+            onClick={() => {
+  if (service.type === "interview") {
+    setSelectedService(service); // open modal (existing flow)
+  } else if (service.type === "coding") {
+    router.push("/coding-assessments");
+  } else if (service.type === "mcq") {
+    router.push("/mcqs");
+  }
+}}
+
           >
+          <p className="mt-1 text-sm text-gray-500">
+  {service.type === "coding" && "DSA & Company-style problems"}
+  {service.type === "mcq" && "OS, DBMS, CN, OOPS"}
+  {service.type === "interview" && "AI-powered mock interviews"}
+</p>
             <img
               src={service.image}
               alt={service.title}

@@ -16,3 +16,5 @@ console.log("result inside the generateWithGemini",result)
 
     return text;
 }
+
+

@@ -55,3 +55,38 @@ console.log(process.env.GEMINI_API_KEY, "GEMINI_API_KEY");
     throw error;  // rethrow so caller knows it failed
   }
 }
+
+
+
+const systemPrompt =`You are generating original competitive programming problems.
+Do not copy LeetCode wording.
+Ensure deterministic outputs.
+`
+
+const userPrompt  = `Rewrite the coding problem "{title}" as a new original problem.
+
+Requirements:
+- Use different wording
+- Same logical problem
+- Clear input/output format
+- Constraints
+- At least 8 test cases
+- Include edge cases
+- Output test cases as JSON
+
+Return JSON:
+{
+  "statement": "...",
+  "constraints": "...",
+  "examples": "...",
+  "testCases": [
+    { "input": "...", "output": "...", "hidden": false },
+    { "input": "...", "output": "...", "hidden": true }
+  ]
+}
+`
+
+
+
+
+ 

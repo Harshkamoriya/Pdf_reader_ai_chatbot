@@ -328,3 +328,88 @@ enum PlanTier {
   PRO
   ENTERPRISE
 }
+
+model CodingAssessment {
+  id         String   @id @default(uuid())
+  title      String
+  duration   Int
+  difficulty String
+  language   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sessions   AssessmentSession[]
+}
+
+model AssessmentSession {
+  id              String   @id @default(cuid())
+  assessmentId    String
+  userId          String
+  startedAt       DateTime @default(now())
+  endsAt          DateTime
+  status          String   // active | submitted | terminated | auto_submitted
+  violations      Int      @default(0)
+
+  assessment      CodingAssessment @relation(fields: [assessmentId], references: [id])
+  questions       SessionQuestion[]
+  submissions     CodeSubmission[]
+
+  @@index([userId])
+  @@index([assessmentId])
+}
+
+model Question {
+  id           String   @id
+  title        String
+  topic        String
+  difficulty   String
+  leetcodeSlug String
+  source       String?
+
+  content      ProblemContent?
+  sessions     SessionQuestion[]
+  submissions  CodeSubmission[]
+}
+
+model ProblemContent {
+  id          String   @id @default(uuid())
+  questionId  String   @unique
+  statement   String
+  constraints String
+  examples    String
+  testCases   Json
+
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+model SessionQuestion {
+  id          String @id @default(cuid())
+  sessionId   String
+  questionId  String
+  order       Int
+
+  session     AssessmentSession @relation(fields: [sessionId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id])
+
+  @@unique([sessionId, questionId])
+}
+
+model CodeSubmission {
+  id          String   @id @default(cuid())
+  sessionId   String
+  questionId  String
+  code        String
+  language    String
+  status      String   // passed | failed | partial | pending
+  score       Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  session     AssessmentSession @relation(fields: [sessionId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id])
+
+  @@index([sessionId])
+  @@index([questionId])
+}
+
+
+
