@@ -44,7 +44,7 @@ export default function CodingAssessmentPage() {
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-gray-200">
-      <AppHeader />
+      {/* <AppHeader /> */}
 
       <div className="mx-auto max-w-5xl px-6 py-12">
         {/* HERO / OVERVIEW */}
