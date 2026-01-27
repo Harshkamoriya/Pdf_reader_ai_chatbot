@@ -2,54 +2,56 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 
-const INDEX_URL =
-  "https://raw.githubusercontent.com/neenza/leetcode-problems/master/problems/problems.json";
+const LIST_URL =
+  "https://api.github.com/repos/neenza/leetcode-problems/contents/problems";
 
-const BASE =
+const RAW_BASE =
   "https://raw.githubusercontent.com/neenza/leetcode-problems/master/problems/";
 
-type ProblemIndexItem = {
-  id: string;        // "0001"
-  slug: string;      // "two-sum"
-};
-
-function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    https
-      .get(url, (res) => {
+    https.get(
+      url,
+      { headers: { "User-Agent": "node" } },
+      (res) => {
         let body = "";
         res.on("data", (c) => (body += c));
-        res.on("end", () => resolve(JSON.parse(body)));
-      })
-      .on("error", reject);
+        res.on("end", () => {
+          if (res.statusCode !== 200) {
+            return reject(
+              new Error(`HTTP ${res.statusCode}: ${body.slice(0, 100)}`)
+            );
+          }
+          resolve(JSON.parse(body));
+        });
+      }
+    ).on("error", reject);
   });
 }
 
 async function downloadTop100() {
-  const index = await fetchJson<ProblemIndexItem[]>(INDEX_URL);
+  const files = await fetchJson<any[]>(LIST_URL);
 
-  const top100 = index.slice(0, 100);
+  const jsonFiles = files
+    .filter((f) => f.name.endsWith(".json"))
+    .slice(0, 100);
 
   const all = [];
 
-  for (const p of top100) {
-    const fileName = `${p.id}-${p.slug}.json`;
-    const url = BASE + fileName;
-
+  for (const f of jsonFiles) {
+    const url = RAW_BASE + f.name;
     const data = await fetchJson<any>(url);
-    all.push(data);
 
-    console.log(`✅ Downloaded ${fileName}`);
+    all.push(data);
+    console.log(`✅ Downloaded ${f.name}`);
   }
 
-  const outputPath = path.join(
-    process.cwd(),
-    "top-100-leetcode.json"
-  );
-
-  fs.writeFileSync(outputPath, JSON.stringify(all, null, 2), "utf-8");
+  const out = path.join(process.cwd(), "top-100-leetcode.json");
+  fs.writeFileSync(out, JSON.stringify(all, null, 2), "utf-8");
 
   console.log("📁 Saved top-100-leetcode.json");
 }
 
-downloadTop100().catch(console.error);
+downloadTop100().catch((e) => {
+  console.error("❌ Error:", e.message);
+});

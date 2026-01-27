@@ -363,9 +363,14 @@ model Question {
   title        String
   topic        String
   difficulty   String
-  leetcodeSlug String
+  leetcodeSlug String   @unique
   source       String?
-
+  problemId     String?        // "1", "2", ...
+  frontendId    String?
+  hints         String[]       // array of hints
+  codeSnippets  Json?          // store the whole code_snippets object
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   content      ProblemContent?
   sessions     SessionQuestion[]
   submissions  CodeSubmission[]
@@ -378,6 +383,8 @@ model ProblemContent {
   constraints String
   examples    String
   testCases   Json
+  followUps    String?  // if any
+  solutionText String?
 
   question Question @relation(fields: [questionId], references: [id])
 }

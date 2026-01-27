@@ -55,14 +55,21 @@ export async function GET(
       }
 
       console.log("   ✅ ProblemContent found");
-
+      console.log(sq.question)
       return {
         id: sq.question.id,
         title: sq.question.title,
+        topic:sq.question.topic,
+        difficulty:sq.question.difficulty,
+        leetcodeSlug:sq.question.leetcodeSlug,
+        source:sq.question.source,
+        problemId:sq.question.problemId,
+        fronetendId:sq.question.frontendId,
         statement: sq.question.content.statement,
         constraints: sq.question.content.constraints,
         examples: sq.question.content.examples,
         testCases: sq.question.content.testCases,
+        codeSnippets:sq.question.codeSnippets
       };
     });
 
