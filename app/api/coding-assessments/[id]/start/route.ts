@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/db";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(
   req: NextRequest,
@@ -8,18 +9,19 @@ export async function POST(
   try {
     console.log("🚀 Starting assessment...");
 
-    // 1️⃣ Get assessment id
-    const { id: assessmentId } = await context.params;
-    const userId = "mock-user-id";
+    // 1️⃣ Get user and assessment id
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    console.log("Assessment ID:", assessmentId);
+    const { id: assessmentId } = await context.params;
+    console.log("Assessment ID:", assessmentId, "User ID:", userId);
 
     // 2️⃣ Fetch assessment
     const assessment = await prisma.codingAssessment.findUnique({
       where: { id: assessmentId },
     });
-
-    console.log("Assessment:", assessment);
 
     if (!assessment) {
       console.error("❌ Assessment not found");
@@ -34,74 +36,67 @@ export async function POST(
       assessment.difficulty.charAt(0).toUpperCase() +
       assessment.difficulty.slice(1).toLowerCase();
 
-    console.log("Normalized difficulty:", normalizedDifficulty);
+    // 4️⃣ Get questions already attempted by this user
+    const attemptedQuestions = await prisma.codeSubmission.findMany({
+      where: {
+        session: {
+          userId: userId,
+        },
+      },
+      select: {
+        questionId: true,
+      },
+    });
 
-    // 4️⃣ Difficulty fallback map
-    const REQUIRED_QUESTIONS = 3;
+    const attemptedIds = new Set(attemptedQuestions.map((q) => q.questionId));
+    console.log(`🔍 User has attempted ${attemptedIds.size} questions previously.`);
 
-    const difficultyOrderMap: Record<string, string[]> = {
-      Easy: ["Easy"],
-      Medium: ["Medium", "Easy", "Hard"],
-      Hard: ["Hard", "Medium"],
-    };
-
-    const difficultyOrder =
-      difficultyOrderMap[normalizedDifficulty] || [
-        "Easy",
-        "Medium",
-        "Hard",
-      ];
-
-    console.log("Difficulty fallback order:", difficultyOrder);
-
-    // 5️⃣ Fetch questions with fallback
-    let selectedQuestions: any[] = [];
-
-    for (const diff of difficultyOrder) {
-      if (selectedQuestions.length >= REQUIRED_QUESTIONS) break;
-
-      const remaining = REQUIRED_QUESTIONS - selectedQuestions.length;
-
-      console.log(`🔍 Fetching ${remaining} questions for: ${diff}`);
-
-      const fetchedQuestions = await prisma.question.findMany({
-        where: {
-          difficulty: diff,
-          content: {
-            is: {
-              statement: {
-                not: "",
-              },
-            },
+    // 5️⃣ Fetch all potential questions with content
+    // We fetch more than we need to allow for random selection and filtering
+    const allQuestions = await prisma.question.findMany({
+      where: {
+        difficulty: normalizedDifficulty,
+        content: {
+          isNot: null,
+          is: {
+            statement: { not: "" },
           },
         },
-        include: {
-          content: true,
-        },
-        take: remaining,
-      });
+      },
+      include: {
+        content: true,
+      },
+    });
 
-      console.log(
-        `✅ Found ${fetchedQuestions.length} questions for ${diff}`
-      );
+    console.log(`✅ Found ${allQuestions.length} total questions for ${normalizedDifficulty}`);
 
-      selectedQuestions.push(...fetchedQuestions);
-    }
+    // 6️⃣ Filter and Shuffle
+    const unattemptedQuestions = allQuestions.filter((q) => !attemptedIds.has(q.id));
+    
+    // If we don't have enough unattempted questions, we might have to reuse some (optional logic)
+    // For now, let's prioritize unattempted, but fallback to all if needed to reach 3.
+    let pool = unattemptedQuestions.length >= 3 ? unattemptedQuestions : allQuestions;
 
-    console.log(
-      "📦 Total selected questions:",
-      selectedQuestions.length
-    );
-
-    if (selectedQuestions.length < REQUIRED_QUESTIONS) {
-      console.error("❌ Not enough valid questions even after fallback");
-      return NextResponse.json(
-        { error: "Not enough valid questions available" },
+    if (pool.length < 3) {
+      // Fallback to any difficulty if still not enough? 
+      // Or just return error if database is too small.
+       return NextResponse.json(
+        { error: "Not enough questions available in the database for this difficulty." },
         { status: 400 }
       );
     }
 
-    // 6️⃣ Create assessment session
+    // Shuffle logic
+    const selectedQuestions = pool
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+
+    console.log(
+      "📦 Selected 3 random questions:",
+      selectedQuestions.map(q => q.title)
+    );
+
+    // 7️⃣ Create assessment session
     const session = await prisma.assessmentSession.create({
       data: {
         assessmentId,
@@ -120,10 +115,8 @@ export async function POST(
     });
 
     console.log("🎉 Session created:", session.id);
-    console.log("selectedQuestions", selectedQuestions)
 
-
-    // 7️⃣ Success response
+    // 8️⃣ Success response
     return NextResponse.json({
       sessionId: session.id,
     });
